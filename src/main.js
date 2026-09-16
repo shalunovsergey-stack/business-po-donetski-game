@@ -19,10 +19,10 @@ function startScreen() {
 }
 
 function startShift() {
+  stopLoop();
   game = createGameState();
+  lastTick = 0;
   renderGame();
-  lastTick = performance.now();
-  timerId = window.setInterval(update, 250);
 }
 
 function stopLoop() { if (timerId) window.clearInterval(timerId); timerId = null; }
@@ -80,7 +80,12 @@ async function shareResult(text) {
 }
 
 function bindActions() {
-  app.querySelector('[data-action="start"]')?.addEventListener('click', () => { game = startCooking(game); renderGame(); });
+  app.querySelector('[data-action="start"]')?.addEventListener('click', () => {
+    game = startCooking(game);
+    lastTick = performance.now();
+    timerId = window.setInterval(update, 250);
+    renderGame();
+  });
   app.querySelector('[data-action="collect"]')?.addEventListener('click', () => { game = collectCheese(game); renderGame(); });
   app.querySelector('[data-action="heat"]')?.addEventListener('click', () => { game = adjustTemperature(game, 'up'); renderGame(); });
   app.querySelector('[data-action="cool"]')?.addEventListener('click', () => { game = adjustTemperature(game, 'down'); renderGame(); });
