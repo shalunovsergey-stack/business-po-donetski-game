@@ -44,7 +44,7 @@ export function tick(game, seconds) {
     next.heatingProgress = clamp(next.heatingProgress + seconds / 9, 0, 1);
     next.temperature = clamp(next.temperature + seconds * (4 / 9), 28, 40);
     next.power = clamp(next.power - seconds * .55, 0, 100);
-    if (next.heatingProgress >= 1) { next.phase = 'COOKING'; next.temperature = 83.5; next.feedback = 'Р’Р°СЂРєР°. Р”РµСЂР¶РёС‚Рµ С‚РµРјРїРµСЂР°С‚СѓСЂСѓ 82вЂ“86 В°C.'; next.flash = 'Р’РђР РљРђ'; }
+    if (next.heatingProgress >= 1) { next.phase = 'COOKING'; next.temperature = 34; next.feedback = 'Р’Р°СЂРєР°. Р”РµСЂР¶РёС‚Рµ С‚РµРјРїРµСЂР°С‚СѓСЂСѓ 82вЂ“86 В°C.'; next.flash = 'Р’РђР РљРђ'; }
   } else if (next.phase === 'COOKING') {
     next.temperature = clamp(next.temperature + seconds * .18, 28, 40); next.power = clamp(next.power - seconds * .78, 0, 100);
     if (next.temperature >= 33 && next.temperature <= 35) next.cookingProgress = clamp(next.cookingProgress + seconds / 16, 0, 1);
