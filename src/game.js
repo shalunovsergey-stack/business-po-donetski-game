@@ -13,7 +13,26 @@ export function createGameState() {
   return { phase: 'IDLE', money: 5000, nerves: 100, cheese: 0, power: 100, remaining: SHIFT_SECONDS, heatingProgress: 0, cookingProgress: 0, temperature: 30, adjustments: 0, penaltyClock: 0, feedback: 'Смена началась. Запускайте варку.', flash: null, activeEvent: null, eventHistory: [], lastEventId: null, lastCategory: null, nextEventAt: 12 + Math.random() * 3, urgentOrder: false, zeroNerves: false };
 }
 
-export function startCooking(game) { return game.phase !== 'IDLE' ? game : { ...game, phase: 'HEATING', money: game.money - 300, power: game.power - 5, feedback: 'Нагрев начался. Следим за оборудованием.', flash: '−300 ₽ · −5% электричества' }; }
+export function startCooking(game) {
+  if (!['IDLE', 'AFTER_COOK'].includes(game.phase)) return game;
+  if (game.phase === 'AFTER_COOK' && game.cheese >= 8) return game;
+
+  return {
+    ...game,
+    phase: 'HEATING',
+    money: game.money - 300,
+    power: game.power - 5,
+    heatingProgress: 0,
+    cookingProgress: 0,
+    temperature: 30,
+    adjustments: 0,
+    penaltyClock: 0,
+    feedback: game.cheese >= 4
+      ? '?????? ?????. ??????? ??????, ??????? ?????? ?? ?????.'
+      : '?????? ???????. ?????? ?? ?????????????.',
+    flash: game.cheese >= 4 ? '?????? ?????' : '?300 ? ? ?5% ?????????????'
+  };
+}
 
 export function adjustTemperature(game, direction) {
   if (game.phase !== 'COOKING') return game;

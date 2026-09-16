@@ -41,7 +41,14 @@ function renderGame() {
   const isCooking = game.phase === 'COOKING';
   const productionProgress = game.phase === 'HEATING' ? game.heatingProgress : ['COOKING', 'READY', 'AFTER_COOK'].includes(game.phase) ? game.cookingProgress : 0;
   const stateText = game.phase === 'HEATING' ? `Нагрев: ${Math.round(game.heatingProgress * 100)}%` : game.phase === 'COOKING' ? `Температура: ${game.temperature.toFixed(1)} °C` : phaseLabel(game.phase);
-  const action = game.phase === 'IDLE' ? `<button class="primary-button action-button" data-action="start">ЗАПУСТИТЬ ВАРКУ</button>` : game.phase === 'READY' ? `<button class="primary-button action-button ready-button" data-action="collect">ДОСТАТЬ СЫР <span>+4 кг</span></button>` : '';
+  const action =
+    game.phase === 'IDLE'
+      ? `<button class="primary-button action-button" data-action="start">ЗАПУСТИТЬ ВАРКУ</button>`
+      : game.phase === 'READY'
+        ? `<button class="primary-button action-button ready-button" data-action="collect">ДОСТАТЬ СЫР <span>+4 ??</span></button>`
+        : game.phase === 'AFTER_COOK' && game.cheese < 8
+          ? `<button class="primary-button action-button" data-action="start">ВТОРАЯ ВАРКА <span>? ещё 4 кг</span></button>`
+          : '';
   const controls = isCooking ? `<div class="temperature-controls"><button class="heat-button" data-action="heat">🔥<span>НАГРЕВ</span></button><button class="cool-button" data-action="cool">❄<span>УБАВИТЬ</span></button></div>` : '';
   app.innerHTML = `<section class="screen game-screen ${game.flash ? 'is-flashing' : ''} ${game.activeEvent?.id ? `event-${game.activeEvent.id}` : ''}" aria-label="Игровая смена"><header class="game-header"><div><p class="eyebrow">СМЕНА · ${formatTime(game.remaining)}</p><h2>Сыроварня</h2></div><div class="production-badge"><span class="status-dot ${game.phase.toLowerCase()}"></span>${phaseLabel(game.phase)}</div></header><div class="hud" aria-label="Показатели смены">${hudCard('Деньги', `${game.money.toLocaleString('ru-RU')} ₽`, '₽')}${hudCard('Нервы', percent(game.nerves), '⚡')}${hudCard('Сыр', `${game.cheese} кг`, '◒')}${hudCard('Электричество', percent(game.power), '⌁')}</div><div class="shift-timer"><span>Смена</span><div><i style="width:${(game.remaining / SHIFT_SECONDS) * 100}%"></i></div><strong>${formatTime(game.remaining)}</strong></div>${factoryScene(game, stateText, productionProgress)}<p class="feedback" aria-live="polite">${game.feedback}</p>${game.zeroNerves ? '<p class="zero-nerves">НЕРВЫ: 0% · РЕЖИМ: МНЕ УЖЕ ВСЁ РАВНО</p>' : ''}${controls}${action}${game.flash ? `<div class="floating-feedback">${game.flash}</div>` : ''}${game.activeEvent ? eventOverlay(game.activeEvent) : ''}</section>`;
   bindActions();
@@ -83,7 +90,7 @@ function bindActions() {
   app.querySelector('[data-action="start"]')?.addEventListener('click', () => {
     game = startCooking(game);
     lastTick = performance.now();
-    timerId = window.setInterval(update, 250);
+    if (!timerId) timerId = window.setInterval(update, 250);
     renderGame();
   });
   app.querySelector('[data-action="collect"]')?.addEventListener('click', () => { game = collectCheese(game); renderGame(); });
