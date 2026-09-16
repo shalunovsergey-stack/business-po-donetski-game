@@ -5,21 +5,21 @@ const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
 const withGuards = (game) => ({ ...game, money: Math.max(0, game.money), nerves: clamp(game.nerves, 0, 100), power: clamp(game.power, 0, 100), cheese: Math.max(0, game.cheese) });
 const scheduleNext = (game) => {
   const elapsed = SHIFT_SECONDS - game.remaining;
-  const cooldown = game.eventHistory.length === 1 ? 12 + Math.random() * 4 : 8 + Math.random() * 4;
+  const cooldown = game.eventHistory.length === 1 ? 6 + Math.random() * 2 : 9 + Math.random() * 3;
   return { ...game, nextEventAt: elapsed + cooldown };
 };
 
 export function createGameState() {
-  return { phase: 'IDLE', money: 5000, nerves: 100, cheese: 0, power: 100, remaining: SHIFT_SECONDS, heatingProgress: 0, cookingProgress: 0, temperature: 82, adjustments: 0, penaltyClock: 0, feedback: 'Смена началась. Запускайте варку.', flash: null, activeEvent: null, eventHistory: [], lastEventId: null, lastCategory: null, nextEventAt: 13 + Math.random() * 2, urgentOrder: false, zeroNerves: false };
+  return { phase: 'IDLE', money: 5000, nerves: 100, cheese: 0, power: 100, remaining: SHIFT_SECONDS, heatingProgress: 0, cookingProgress: 0, temperature: 30, adjustments: 0, penaltyClock: 0, feedback: 'Смена началась. Запускайте варку.', flash: null, activeEvent: null, eventHistory: [], lastEventId: null, lastCategory: null, nextEventAt: 12 + Math.random() * 3, urgentOrder: false, zeroNerves: false };
 }
 
 export function startCooking(game) { return game.phase !== 'IDLE' ? game : { ...game, phase: 'HEATING', money: game.money - 300, power: game.power - 5, feedback: 'Нагрев начался. Следим за оборудованием.', flash: '−300 ₽ · −5% электричества' }; }
 
 export function adjustTemperature(game, direction) {
   if (game.phase !== 'COOKING') return game;
-  const strength = game.nerves === 0 ? 2.5 : 1.8;
+  const strength = game.nerves === 0 ? 1.2 : 0.9;
   const delta = direction === 'up' ? strength : -strength;
-  return { ...game, temperature: clamp(game.temperature + delta, 70, 96), adjustments: game.adjustments + 1, feedback: game.nerves === 0 ? 'Мне уже всё равно. Ручка крутится увереннее.' : direction === 'up' ? 'Температура растёт.' : 'Убавили. Держим режим.', flash: game.nerves === 0 ? 'РЕЖИМ: ВСЁ РАВНО' : direction === 'up' ? '+ нагрев' : '− нагрев' };
+  return { ...game, temperature: clamp(game.temperature + delta, 28, 40), adjustments: game.adjustments + 1, feedback: game.nerves === 0 ? 'Мне уже всё равно. Ручка крутится увереннее.' : direction === 'up' ? 'Температура растёт.' : 'Убавили. Держим режим.', flash: game.nerves === 0 ? 'РЕЖИМ: ВСЁ РАВНО' : direction === 'up' ? '+ нагрев' : '− нагрев' };
 }
 
 export function collectCheese(game) {
@@ -36,15 +36,18 @@ export function resolveEvent(game, optionId) {
 }
 
 export function tick(game, seconds) {
-  if (game.phase === 'ENDED' || game.phase === 'READY' || game.activeEvent) return game;
+  if (game.phase === 'ENDED' || game.phase === 'READY') return game;
   let next = { ...game, remaining: Math.max(0, game.remaining - seconds), flash: null };
   if (next.remaining <= 0) return finish(next);
+  if (game.activeEvent) return withGuards(next);
   if (next.phase === 'HEATING') {
-    next.heatingProgress = clamp(next.heatingProgress + seconds / 9, 0, 1); next.power = clamp(next.power - seconds * .55, 0, 100);
+    next.heatingProgress = clamp(next.heatingProgress + seconds / 9, 0, 1);
+    next.temperature = clamp(next.temperature + seconds * (4 / 9), 28, 40);
+    next.power = clamp(next.power - seconds * .55, 0, 100);
     if (next.heatingProgress >= 1) { next.phase = 'COOKING'; next.temperature = 83.5; next.feedback = 'Варка. Держите температуру 82–86 °C.'; next.flash = 'ВАРКА'; }
   } else if (next.phase === 'COOKING') {
-    next.temperature = clamp(next.temperature + seconds * .42, 70, 96); next.power = clamp(next.power - seconds * .78, 0, 100);
-    if (next.temperature >= 82.5 && next.temperature <= 85.5) next.cookingProgress = clamp(next.cookingProgress + seconds / 16, 0, 1);
+    next.temperature = clamp(next.temperature + seconds * .18, 28, 40); next.power = clamp(next.power - seconds * .78, 0, 100);
+    if (next.temperature >= 33 && next.temperature <= 35) next.cookingProgress = clamp(next.cookingProgress + seconds / 16, 0, 1);
     else { next.penaltyClock += seconds; next.feedback = next.temperature > 85.5 ? 'Слишком горячо! Убавляйте.' : 'Слишком холодно! Добавьте нагрев.'; if (next.penaltyClock >= 2) { next.nerves = clamp(next.nerves - 8, 0, 100); next.penaltyClock = 0; next.flash = '−8 нервов'; } }
     if (next.cookingProgress >= 1 && next.adjustments >= 2) { next.phase = 'READY'; next.feedback = 'Сыр готов. Достаньте его из ванны.'; next.flash = 'СЫР ГОТОВ'; return next; }
   }

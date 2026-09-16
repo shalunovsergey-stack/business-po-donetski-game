@@ -15,8 +15,8 @@ function run(seed, strategy) {
       if (game.phase === 'COOKING') {
         const careless = strategy === 'random' && Math.random() < .38;
         if (!careless && game.adjustments < 2) game = adjustTemperature(game, game.adjustments ? 'down' : 'up');
-        else if (!careless && game.temperature > 85) game = adjustTemperature(game, 'down');
-        else if (!careless && game.temperature < 82.6) game = adjustTemperature(game, 'up');
+        else if (!careless && game.temperature > 34.7) game = adjustTemperature(game, 'down');
+        else if (!careless && game.temperature < 33.1) game = adjustTemperature(game, 'up');
       }
       game = tick(game, .5);
     }
