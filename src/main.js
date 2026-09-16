@@ -1,4 +1,4 @@
-import { SHIFT_SECONDS, adjustTemperature, collectCheese, createGameState, phaseLabel, resolveEvent, resultRank, resultStory, startCooking, tick } from './game.js';
+import { SHIFT_SECONDS, adjustTemperature, collectCheese, createGameState, phaseLabel, resolveEvent, resultRank, resultStory, startCooking, tick } from './game.js?v=20260916-2';
 import { brand } from './brand-config.js';
 
 const app = document.querySelector('#app');
