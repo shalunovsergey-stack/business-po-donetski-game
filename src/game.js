@@ -36,7 +36,7 @@ export function resolveEvent(game, optionId) {
 }
 
 export function tick(game, seconds) {
-  if (game.phase === 'ENDED' || game.phase === 'READY') return game;
+  if (game.phase === 'ENDED') return game;
   let next = { ...game, remaining: Math.max(0, game.remaining - seconds), flash: null };
   if (next.remaining <= 0) return finish(next);
   if (game.activeEvent) return withGuards(next);
